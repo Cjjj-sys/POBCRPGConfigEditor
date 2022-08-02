@@ -5,6 +5,12 @@
     <TargetFramework>net6.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>b8888.ico</ApplicationIcon>
+	  <Version>0.1.0</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="b8888.ico" />
+  </ItemGroup>
 
 </Project>
