@@ -27,28 +27,15 @@ namespace POBCRPGConfigEditor
         {
             InitializeComponent();
         }
+        #region Properties&Fields
         const string VERSION = "v0.1.0";
         public string SerializedPOBCRPGJson { get; set; }
         public POBCRPGJsonStructure.Rootobject DeserializedPOBCRPGJson { get; set; }
         private string _fileName;
         private bool _hasUnsavedChange = false;
-        private async void MenuItemOpen_Click(object sender, RoutedEventArgs e)
-        {
-            if(await CheckSave())
-            {
-                var ofd = new OpenFileDialog();
-                ofd.Filter = "POBC-RPG.json 配置文件|*.json";
-                ofd.Title = "选择 POBC-RPG.json 配置文件";
-                ofd.FileName = "POBC-RPG.json";
-                if ((bool)ofd.ShowDialog())
-                {
-                    _fileName = ofd.FileName;
-                    string json = await File.ReadAllTextAsync(_fileName);
-                    LoadPOBCRPGJson(json);
-                }
-            }
-        }
+        #endregion
 
+        #region FuntionalMethods
         private void LoadPOBCRPGJson(string json)
         {
             SerializedPOBCRPGJson = json;
@@ -110,6 +97,59 @@ namespace POBCRPGConfigEditor
             MessageBox.Show("保存成功!", "保存", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
+        private void AddListBoxRPGItem()
+        {
+            var selectedItemIndex = ListBoxRPGList.SelectedIndex;
+            if (selectedItemIndex == -1)
+            {
+                selectedItemIndex = DeserializedPOBCRPGJson.RPGList.Count - 1;
+            }
+            DeserializedPOBCRPGJson.RPGList.Insert(selectedItemIndex + 1, new POBCRPGJsonStructure.Rpglist()
+            {
+                Group = "Group",
+                GoGroup = "GoGroup",
+                Co = new List<string>(),
+                C = 100
+            });
+        }
+
+        private void DeleteListBoxRPGItem()
+        {
+            var selectedItem = ListBoxRPGList.SelectedItem as POBCRPGJsonStructure.Rpglist;
+            if (selectedItem != null)
+            {
+                if (MessageBox.Show($"确定删除 {selectedItem.Group} -> {selectedItem.GoGroup} ?", "确认删除?", MessageBoxButton.YesNo, MessageBoxImage.Question)
+                    == MessageBoxResult.Yes)
+                {
+                    DeserializedPOBCRPGJson.RPGList.RemoveAt(ListBoxRPGList.SelectedIndex);
+                }
+            }
+            else
+            {
+                MessageBox.Show("没有选中项", "警告", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+        }
+        #endregion
+
+        #region EventHandlerMethods
+        private async void MenuItemOpen_Click(object sender, RoutedEventArgs e)
+        {
+            if(await CheckSave())
+            {
+                var ofd = new OpenFileDialog();
+                ofd.Filter = "POBC-RPG.json 配置文件|*.json";
+                ofd.Title = "选择 POBC-RPG.json 配置文件";
+                ofd.FileName = "POBC-RPG.json";
+                if ((bool)ofd.ShowDialog())
+                {
+                    _fileName = ofd.FileName;
+                    string json = await File.ReadAllTextAsync(_fileName);
+                    LoadPOBCRPGJson(json);
+                }
+            }
+        }
+
         private async void MenuItemSave_Click(object sender, RoutedEventArgs e)
         {
             await Save();
@@ -124,37 +164,13 @@ namespace POBCRPGConfigEditor
 
         private void ButtonAdd_Click(object sender, RoutedEventArgs e)
         {
-            var selectedItemIndex = ListBoxRPGList.SelectedIndex;
-            if (selectedItemIndex == -1)
-            {
-                selectedItemIndex = DeserializedPOBCRPGJson.RPGList.Count - 1;
-            }
-            DeserializedPOBCRPGJson.RPGList.Insert(selectedItemIndex + 1, new POBCRPGJsonStructure.Rpglist()
-            {
-                Group = "Group",
-                GoGroup = "GoGroup",
-                Co = new List<string>(),
-                C = 100
-            });
+            AddListBoxRPGItem();
             HotUpdate();
         }
 
         private void ButtonDelete_Click(object sender, RoutedEventArgs e)
         {
-            var selectedItem = ListBoxRPGList.SelectedItem as POBCRPGJsonStructure.Rpglist;
-            if (selectedItem != null)
-            {
-                if (MessageBox.Show($"确定删除 {selectedItem.Group} -> {selectedItem.GoGroup} ?","确认删除?", MessageBoxButton.YesNo, MessageBoxImage.Question)
-                    == MessageBoxResult.Yes)
-                {
-                    DeserializedPOBCRPGJson.RPGList.RemoveAt(ListBoxRPGList.SelectedIndex);
-                }
-            }
-            else
-            {
-                MessageBox.Show("没有选中项", "警告", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            DeleteListBoxRPGItem();
             HotUpdate();
         }
 
@@ -162,20 +178,7 @@ namespace POBCRPGConfigEditor
         {
             if (e.Key == Key.Delete)
             {
-                var selectedItem = ListBoxRPGList.SelectedItem as POBCRPGJsonStructure.Rpglist;
-                if (selectedItem != null)
-                {
-                    if (MessageBox.Show($"确定删除 {selectedItem.Group} -> {selectedItem.GoGroup} ?", "确认删除?", MessageBoxButton.YesNo, MessageBoxImage.Question)
-                        == MessageBoxResult.Yes)
-                    {
-                        DeserializedPOBCRPGJson.RPGList.RemoveAt(ListBoxRPGList.SelectedIndex);
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("没有选中项", "警告", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
+                DeleteListBoxRPGItem();
                 HotUpdate();
             }
         }
@@ -205,5 +208,31 @@ namespace POBCRPGConfigEditor
         {
             MessageBox.Show($"关于页面还没做好呢！不过可以告诉你现在的版本号哦！\n{VERSION}", $"{VERSION}", MessageBoxButton.OK, MessageBoxImage.Stop);
         }
+
+        private void ListBoxMenuItemOpen_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedItem = ListBoxRPGList.SelectedItem as POBCRPGJsonStructure.Rpglist;
+            if (selectedItem != null)
+            {
+                MessageBox.Show($"你想要打开 {selectedItem.Group} -> {selectedItem.GoGroup} !\n但是还没有做内容编辑的部分!", "正在开发中...", MessageBoxButton.OK, MessageBoxImage.Stop);
+            }
+            else
+            {
+                MessageBox.Show("没有选中项", "警告", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        private void ListBoxMenuItemAdd_Click(object sender, RoutedEventArgs e)
+        {
+            AddListBoxRPGItem();
+            HotUpdate();
+        }
+
+        private void ListBoxMenuItemDelete_Click(object sender, RoutedEventArgs e)
+        {
+            DeleteListBoxRPGItem();
+            HotUpdate();
+        }
+        #endregion
     }
 }

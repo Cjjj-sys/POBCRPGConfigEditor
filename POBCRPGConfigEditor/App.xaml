@@ -1,9 +1,8 @@
-﻿<Application x:Class="POBCRPGConfigEditor.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:POBCRPGConfigEditor"
-             StartupUri="MainWindow.xaml">
-    <Application.Resources>
-         
-    </Application.Resources>
+﻿<Application
+    x:Class="POBCRPGConfigEditor.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:POBCRPGConfigEditor"
+    StartupUri="MainWindow.xaml">
+    <Application.Resources />
 </Application>

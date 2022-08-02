@@ -1190,7 +1190,7 @@
     </Window.Resources>
 
     <Border
-        Margin="5"
+        Margin="2"
         Background="Black"
         BorderBrush="#FF2E3C77"
         BorderThickness="1"
@@ -1257,6 +1257,30 @@
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
+                        <ListBox.ContextMenu>
+                            <ContextMenu Background="#FF2B3865" BorderBrush="Black">
+                                <ContextMenu.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="5" />
+                                    </Style>
+                                </ContextMenu.Resources>
+                                <MenuItem
+                                    x:Name="ListBoxMenuItemOpen"
+                                    Click="ListBoxMenuItemOpen_Click"
+                                    Header="打开"
+                                    Style="{DynamicResource TerrariaNormalMenuItem}" />
+                                <MenuItem
+                                    x:Name="ListBoxMenuItemAdd"
+                                    Click="ListBoxMenuItemAdd_Click"
+                                    Header="新增"
+                                    Style="{DynamicResource TerrariaNormalMenuItem}" />
+                                <MenuItem
+                                    x:Name="ListBoxMenuItemDelete"
+                                    Click="ListBoxMenuItemDelete_Click"
+                                    Header="删除"
+                                    Style="{DynamicResource TerrariaNormalMenuItem}" />
+                            </ContextMenu>
+                        </ListBox.ContextMenu>
                         <ListBoxItem Content=" default -&gt; Lv.1 " Style="{DynamicResource TerrariaNormalListBoxItem}" />
                         <ListBoxItem Content=" LV.1 -&gt; Lv.2 " Style="{DynamicResource TerrariaNormalListBoxItem}" />
                     </ListBox>
@@ -1283,7 +1307,11 @@
                     Background="#FF243158"
                     BorderBrush="Black"
                     BorderThickness="1"
-                    CornerRadius="5" />
+                    CornerRadius="5" >
+                    <Grid>
+                        
+                    </Grid>
+                </Border>
             </Grid>
         </Grid>
     </Border>
