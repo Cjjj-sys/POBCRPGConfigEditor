@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>b8888.ico</ApplicationIcon>
-	  <Version>0.1.0</Version>
+	  <Version>0.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

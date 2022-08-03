@@ -28,7 +28,7 @@ namespace POBCRPGConfigEditor
             InitializeComponent();
         }
         #region Properties&Fields
-        const string VERSION = "v0.1.0";
+        const string VERSION = "v0.2.0";
         public string SerializedPOBCRPGJson { get; set; }
         public POBCRPGJsonStructure.Rootobject DeserializedPOBCRPGJson { get; set; }
         private string _fileName;
@@ -93,6 +93,7 @@ namespace POBCRPGConfigEditor
 
         private async Task Save()
         {
+            HotUpdate();
             await File.WriteAllTextAsync(_fileName, SerializedPOBCRPGJson);
             MessageBox.Show("保存成功!", "保存", MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -156,10 +157,18 @@ namespace POBCRPGConfigEditor
             ColdUpdate();
         }
 
-        private void MenuItemClose_Click(object sender, RoutedEventArgs e)
+        private async void MenuItemClose_Click(object sender, RoutedEventArgs e)
         {
-            ListBoxRPGList.ItemsSource = null;
-            ListBoxRPGList.Items.Clear();
+            if (await CheckSave())
+            {
+                ListBoxRPGList.ItemsSource = null;
+                ListBoxRPGList.Items.Clear();
+                GridConfigEditor.DataContext = null;
+                _fileName = String.Empty;
+                DeserializedPOBCRPGJson = null;
+                SerializedPOBCRPGJson = String.Empty;
+                _hasUnsavedChange = false;
+            }
         }
 
         private void ButtonAdd_Click(object sender, RoutedEventArgs e)
@@ -183,12 +192,17 @@ namespace POBCRPGConfigEditor
             }
         }
 
-        private void ListBoxRPGList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private async void ListBoxRPGList_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var selectedItem = ListBoxRPGList.SelectedItem as POBCRPGJsonStructure.Rpglist;
             if (selectedItem != null)
             {
-                MessageBox.Show($"你双击了 {selectedItem.Group} -> {selectedItem.GoGroup} !\n但是还没有做内容编辑的部分!", "正在开发中...", MessageBoxButton.OK, MessageBoxImage.Stop);
+                //MessageBox.Show($"你双击了 {selectedItem.Group} -> {selectedItem.GoGroup} !\n但是还没有做内容编辑的部分!", "正在开发中...", MessageBoxButton.OK, MessageBoxImage.Stop);
+                //f (await CheckSave())
+                //{
+                    GridConfigEditor.DataContext = null;
+                    GridConfigEditor.DataContext = selectedItem;
+                //}
             }
             else
             {
@@ -206,15 +220,20 @@ namespace POBCRPGConfigEditor
 
         private void MenuItemAbout_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show($"关于页面还没做好呢！不过可以告诉你现在的版本号哦！\n{VERSION}", $"{VERSION}", MessageBoxButton.OK, MessageBoxImage.Stop);
+            MessageBox.Show($"关于页面还没做好呢！不过可以告诉你一些基本信息哦！\n版本号: {VERSION}\n作者: KangKang\n作者QQ: 2646381627", $"{VERSION}", MessageBoxButton.OK, MessageBoxImage.Stop);
         }
 
-        private void ListBoxMenuItemOpen_Click(object sender, RoutedEventArgs e)
+        private async void ListBoxMenuItemOpen_Click(object sender, RoutedEventArgs e)
         {
             var selectedItem = ListBoxRPGList.SelectedItem as POBCRPGJsonStructure.Rpglist;
             if (selectedItem != null)
             {
-                MessageBox.Show($"你想要打开 {selectedItem.Group} -> {selectedItem.GoGroup} !\n但是还没有做内容编辑的部分!", "正在开发中...", MessageBoxButton.OK, MessageBoxImage.Stop);
+                //MessageBox.Show($"你想要打开 {selectedItem.Group} -> {selectedItem.GoGroup} !\n但是还没有做内容编辑的部分!", "正在开发中...", MessageBoxButton.OK, MessageBoxImage.Stop);
+                //if (await CheckSave())
+                //{
+                    GridConfigEditor.DataContext = null;
+                    GridConfigEditor.DataContext = selectedItem;
+                //}
             }
             else
             {
@@ -232,6 +251,139 @@ namespace POBCRPGConfigEditor
         {
             DeleteListBoxRPGItem();
             HotUpdate();
+        }
+
+        private void ButtonSaveConfigContent_Click(object sender, RoutedEventArgs e)
+        {
+            _hasUnsavedChange = true;
+            var selectedItem = ListBoxRPGList.SelectedItem as POBCRPGJsonStructure.Rpglist;
+            (string group, string goGroup, long c) = (TextBoxGroup.Text, TextBoxGoGroup.Text, long.Parse(TextBoxC.Text));
+            (selectedItem.Group, selectedItem.GoGroup, selectedItem.C) = (group, goGroup, c);
+
+            List<string> cos = ListBoxCos.Items.SourceCollection as List<string>;
+            selectedItem.Co = cos;
+        }
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var selectedItem = ListBoxRPGList.SelectedItem as POBCRPGJsonStructure.Rpglist;
+                var co = selectedItem.Co;
+                if (co != null)
+                {
+                    var i = co.IndexOf((sender as TextBox).Tag as string);
+                    co[i] = (sender as TextBox).Text as string;
+                    (sender as TextBox).Tag = (sender as TextBox).Text;
+                }
+            }
+            catch (NullReferenceException)
+            {
+
+            }
+        }
+
+        private void ButtonCoItem_Click(object sender, RoutedEventArgs e)
+        {
+            var ofd = new OpenFileDialog();
+            ofd.Filter = "物品|*.png";
+            ofd.Title = "选择物品";
+            ofd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory + @"images\item\";
+            if ((bool)ofd.ShowDialog())
+            {
+                (sender as Button).Tag = $"/give {ofd.SafeFileName.Split('.')[1]} {{name}} 1";
+            }
+            //MessageBox.Show((sender as Button).Tag as string);
+            //(sender as Button).Tag = (sender as Button).Tag as string + "!";
+        }
+
+        private void TextBoxCo_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            //_hasUnsavedChange = true;
+            if ((sender as TextBox).Tag != null)
+            {
+                var selectedItem = ListBoxRPGList.SelectedItem as POBCRPGJsonStructure.Rpglist;
+                var co = selectedItem.Co;
+                if (co != null)
+                {
+                    var i = co.IndexOf((sender as TextBox).Tag as string);
+                    co[i] = (sender as TextBox).Text as string;
+                    (sender as TextBox).Tag = (sender as TextBox).Text;
+                    _hasUnsavedChange = true;
+                }
+            }
+        }
+
+        private void ButtonConfigContentAdd_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedItem = ListBoxRPGList.SelectedItem as POBCRPGJsonStructure.Rpglist;
+            var co = selectedItem.Co;
+            var selectedCoIndex = ListBoxCos.SelectedIndex;
+            if (selectedCoIndex != -1)
+            {
+                co.Insert(selectedCoIndex + 1, "");
+            }
+            else
+            {
+                co.Add("");
+            }
+            GridConfigEditor.DataContext = null;
+            GridConfigEditor.DataContext = selectedItem;
+        }
+
+        private void ButtonConfigContentDelete_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedItem = ListBoxRPGList.SelectedItem as POBCRPGJsonStructure.Rpglist;
+            var co = selectedItem.Co;
+            var selectedCoIndex = ListBoxCos.SelectedIndex;
+            if (selectedCoIndex != -1)
+            {
+                if (MessageBox.Show($"确定删除 {co[selectedCoIndex]} ?", "确认删除?", MessageBoxButton.YesNo, MessageBoxImage.Question)
+                    == MessageBoxResult.Yes)
+                {
+                    co.RemoveAt(selectedCoIndex);
+                }
+            }
+            else
+            {
+                MessageBox.Show("没有选中项", "警告", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            GridConfigEditor.DataContext = null;
+            GridConfigEditor.DataContext = selectedItem;
+        }
+        private void ListBoxCos_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Delete)
+            {
+                var selectedItem = ListBoxRPGList.SelectedItem as POBCRPGJsonStructure.Rpglist;
+                var co = selectedItem.Co;
+                var selectedCoIndex = ListBoxCos.SelectedIndex;
+                if (selectedCoIndex != -1)
+                {
+                    if (MessageBox.Show($"确定删除 {co[selectedCoIndex]} ?", "确认删除?", MessageBoxButton.YesNo, MessageBoxImage.Question)
+                    == MessageBoxResult.Yes)
+                    {
+                        co.RemoveAt(selectedCoIndex);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("没有选中项", "警告", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                GridConfigEditor.DataContext = null;
+                GridConfigEditor.DataContext = selectedItem;
+            }
+        }
+
+        private void ButtonCoBuff_Click(object sender, RoutedEventArgs e)
+        {
+            var ofd = new OpenFileDialog();
+            ofd.Filter = "Buff|*.png";
+            ofd.Title = "选择Buff";
+            ofd.InitialDirectory = AppDomain.CurrentDomain.BaseDirectory + @"images\buff\";
+            if ((bool)ofd.ShowDialog())
+            {
+                (sender as Button).Tag = $"/gpermabuff {ofd.SafeFileName.Split('.')[1]} {{name}}";
+            }
         }
         #endregion
     }
